@@ -178,3 +178,22 @@ input:disabled { background: #f1ede5; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+
+/* アルバム画像ダウンロード用のボタン配置 */
+.heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+@media (max-width: 720px) {
+  .heading-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .heading-actions button {
+    width: 100%;
+  }
+}
