@@ -14,7 +14,7 @@
 -   CSS
 -   JavaScript（Vanilla JS）
 -   カメラ表示：ブラウザの `getUserMedia()` API
-
+ 
  **現在の実装状況:** フロントエンドの試作段階です。MediaPipe Face
  Landmarkerによる笑顔スコア計測・3秒間の条件判定・自動撮影、およびSupabase/Firebaseとの連携は、別途実装・接続が必要です。現時点の記録保存はブラウザの
 `localStorage` を使用する試作構成です。
