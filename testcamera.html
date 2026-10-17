@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smile Meter</title>
+  <link rel="stylesheet" href="testcamera.css">
+</head>
+<body>
+  <header>
+    <div class="logo">☺ SMILE METER</div>
+    <div class="camera-status">
+      <span class="status-dot"></span>
+      CAMERA APP
+    </div>
+  </header>
+
+  <main>
+    <p class="label">YOUR SMILE SCORE</p>
+    <div class="score" id="score">0</div>
+
+    <div class="face-ring" id="faceRing">
+      <div class="face-frame">
+        <video id="camera" autoplay playsinline muted></video>
+
+        <div class="camera-placeholder" id="placeholder">
+          <span>☺</span>
+          <p>カメラを起動してください</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="message" id="message">笑顔の準備はいい？</p>
+
+    <div class="buttons">
+      <button id="startButton">カメラを起動</button>
+      <button id="resetButton" class="secondary">リセット</button>
+    </div>
+
+    <p class="note">
+      笑顔のスコアをリアルタイムで測定します
+    </p>
+  </main>
+
+  <script type="module" src="testcamera.js"></script>
+</body>
+</html>
