@@ -1,1 +1,0 @@
-https://scltqsgyhrwzjqqbpsdp.supabase.co/rest/v1/diaries
