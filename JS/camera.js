@@ -156,6 +156,7 @@ async function capturePhoto() {
 
         statusElement.textContent = "採点完了！";
 
+        // 👇️🐮姫野さんのこの頑張りを残しておいて欲しいです by吉田
         switch (score) {
             case 100:
                 messageElement.textContent ='神の領域';
@@ -302,6 +303,7 @@ async function capturePhoto() {
                 messageElement.textContent = 'ウシでも出来る笑顔🐄';
                 break;
         }
+        // 👆️🐮お願いします by吉田
 
     } catch (error) {
         console.error(error);
