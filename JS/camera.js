@@ -72,7 +72,7 @@ async function startCamera() {
 
         statusElement.textContent = "撮影の準備ができました";
         messageElement.textContent =
-            "笑顔を作って「写真を撮影」を押してね！";
+            "笑顔を作って「写真を撮影」を押してください";
 
     } catch (error) {
         console.error(error);
@@ -123,7 +123,7 @@ async function capturePhoto() {
         ) {
             statusElement.textContent = "顔を認識できませんでした";
             messageElement.textContent =
-                "顔全体が映るようにして、もう一度撮影してね。";
+                "顔全体が映るようにして、もう一度撮影してください。";
             return;
         }
 
@@ -155,16 +155,27 @@ async function capturePhoto() {
         resultElement.hidden = false;
 
         statusElement.textContent = "採点完了！";
-        messageElement.textContent =
-            score >= 60
-                ? "素敵な笑顔だね！ ☕"
-                : "次はもっと笑顔で撮影してみよう！";
+       if  (score === 100) {
+        messageElement.textContent = "こんな笑顔見たことない！友達もびっくり";
+       } else if (score >= 90) {
+        messageElement.textContent = "惜しい！";
+       } else if (score >= 80) {
+        messageElement.textContent = "恥を捨てて！まだいける！！";
+       } else if (score >= 70) {
+        messageElement.textContent = "一般的な笑顔ですね";
+       }else if (score >= 60) {
+        messageElement.textContent = "微妙な笑顔！";
+       }else if (score >= 50) {
+        messageElement.textContent = "表情筋のトレーニングをおすすめします";
+       }else if (score >= 0) {
+        messageElement.textContent = "ウシでも出来る笑顔！🐄";
+       }
 
     } catch (error) {
         console.error(error);
         statusElement.textContent = "採点に失敗しました";
         messageElement.textContent =
-            "もう一度撮影してみてね。";
+            "もう一度撮影して。";
     } finally {
         isCapturing = false;
         captureButton.disabled = false;
