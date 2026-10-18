@@ -21,7 +21,10 @@
           <div>
             <h1 id="calendarTitle">アルバム</h1>
           </div>
-          <button class="primary-button" id="openCameraButton" type="button"><span aria-hidden="true">＋</span> 笑顔を記録</button>
+          <div class="heading-actions">
+            <button class="secondary-button" id="downloadAlbumButton" type="button">今月のアルバムを画像で保存</button>
+            <button class="primary-button" id="openCameraButton" type="button"><span aria-hidden="true">＋</span> 笑顔を記録</button>
+          </div>
         </div>
 
         <section class="calendar-card" aria-label="月間カレンダー">
@@ -76,7 +79,7 @@
             <h2>今日の記録</h2>
             <label for="memoryDate">日付</label>
             <input id="memoryDate" name="date" type="date" required>
-            <label for="smileScore">笑顔スコア</label> <!-- 計測機能と接続 -->
+            <label for="smileScore">笑顔スコア</label>
             <div class="score-row"><input id="smileScore" name="score" type="number" min="0" max="100" value="—" disabled><span>%</span></div>
             <label for="memoryNote">一言メモ</label>
             <textarea id="memoryNote" name="note" rows="5" maxlength="240" placeholder="何がうれしかった？ どんな一日だった？"></textarea>
