@@ -248,3 +248,138 @@ window.addEventListener("beforeunload", stopCamera);
 
 $("#memoryDate").value = dateKey(now);
 renderCalendar();
+
+// 月ごとの写真をまとめたアルバムを作成する
+const downloadAlbumButton = $("#downloadAlbumButton");
+
+downloadAlbumButton.addEventListener("click", async () => {
+  const year = shownMonth.getFullYear();
+  const month = shownMonth.getMonth();
+
+  // 表示中の月に保存された記録を取得
+  const monthlyRecords = records
+    .filter(record => {
+      const date = parseDate(record.date);
+      return date.getFullYear() === year && date.getMonth() === month;
+    })
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  if (monthlyRecords.length === 0) {
+    alert("この月には写真がありません。");
+    return;
+  }
+
+  downloadAlbumButton.disabled = true;
+  downloadAlbumButton.textContent = "アルバム作成中...";
+
+  try {
+    const photoWidth = 240;
+    const photoHeight = 180;
+    const columns = 3;
+    const padding = 30;
+    const gap = 20;
+    const titleHeight = 80;
+    const noteHeight = 50;
+
+    const rows = Math.ceil(monthlyRecords.length / columns);
+
+    const albumCanvas = document.createElement("canvas");
+    const context = albumCanvas.getContext("2d");
+
+    albumCanvas.width =
+      padding * 2 + columns * photoWidth + (columns - 1) * gap;
+
+    albumCanvas.height =
+      titleHeight +
+      padding +
+      rows * (photoHeight + noteHeight) +
+      (rows - 1) * gap +
+      padding;
+
+    // 背景
+    context.fillStyle = "#f5f0e5";
+    context.fillRect(
+      0,
+      0,
+      albumCanvas.width,
+      albumCanvas.height
+    );
+
+    // タイトル
+    context.fillStyle = "#493f35";
+    context.font = "bold 28px sans-serif";
+    context.textAlign = "center";
+    context.fillText(
+      `${year}年${month + 1}月の笑顔アルバム`,
+      albumCanvas.width / 2,
+      45
+    );
+
+    // 写真を順番に配置
+    for (let i = 0; i < monthlyRecords.length; i++) {
+      const record = monthlyRecords[i];
+
+      const column = i % columns;
+      const row = Math.floor(i / columns);
+
+      const x = padding + column * (photoWidth + gap);
+      const y = titleHeight + row * (photoHeight + noteHeight + gap);
+
+      const img = new Image();
+
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = record.photo;
+      });
+
+      // 写真
+      context.drawImage(
+        img,
+        x,
+        y,
+        photoWidth,
+        photoHeight
+      );
+
+      // 日付
+      context.fillStyle = "#493f35";
+      context.font = "bold 14px sans-serif";
+      context.textAlign = "left";
+      context.fillText(
+        record.date,
+        x,
+        y + photoHeight + 20
+      );
+
+      // メモ
+      context.font = "12px sans-serif";
+
+      const note = record.note || "メモなし";
+      const shortNote =
+        note.length > 25 ? note.slice(0, 25) + "..." : note;
+
+      context.fillText(
+        shortNote,
+        x,
+        y + photoHeight + 42
+      );
+    }
+
+    // PNG画像としてダウンロード
+    const link = document.createElement("a");
+
+    link.download =
+      `笑顔アルバム_${year}年${month + 1}月.png`;
+
+    link.href = albumCanvas.toDataURL("image/png");
+    link.click();
+
+  } catch (error) {
+    console.error("アルバムの作成に失敗しました:", error);
+    alert("アルバムを作成できませんでした。写真を確認してください。");
+  } finally {
+    downloadAlbumButton.disabled = false;
+    downloadAlbumButton.textContent = "アルバムを作る";
+  }
+});
