@@ -11,21 +11,17 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="#" aria-label="Smile Memory ホーム">
-        <span>ご機嫌メーター</span>
+        <span>ご機嫌メータ―</span>
       </a>
     </header>
 
     <main>
-      <!-- カレンダー・アルバム画面 -->
       <section class="view is-active" id="calendarView" aria-labelledby="calendarTitle">
         <div class="page-heading">
           <div>
             <h1 id="calendarTitle">アルバム</h1>
           </div>
-
-          <button class="primary-button" id="openCameraButton" type="button">
-            <span aria-hidden="true">＋</span> 笑顔を記録
-          </button>
+          <button class="primary-button" id="openCameraButton" type="button"><span aria-hidden="true">＋</span> 笑顔を記録</button>
         </div>
 
         <section class="calendar-card" aria-label="月間カレンダー">
@@ -34,189 +30,89 @@
             <h2 id="monthLabel">2026年10月</h2>
             <button class="icon-button" id="nextMonth" type="button" aria-label="次の月">›</button>
           </div>
-
           <div class="weekdays" aria-hidden="true">
-            <span>月</span>
-            <span>火</span>
-            <span>水</span>
-            <span>木</span>
-            <span>金</span>
-            <span>土</span>
-            <span>日</span>
+            <span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span><span>日</span>
           </div>
-
           <div class="calendar-grid" id="calendarGrid" aria-label="日付"></div>
-
-          <div class="calendar-legend">
-            <span class="legend-dot"></span>
-          </div>
+          <div class="calendar-legend"><span class="legend-dot"></span> </div>
         </section>
 
         <section class="recent-section">
           <div class="section-heading">
             <h2>最近の記録</h2>
             <span class="muted" id="recordCount">0件</span>
-
             <button class="secondary-button" id="downloadAlbumButton" type="button">
               アルバムを作る
             </button>
           </div>
-
           <div class="recent-list" id="recentList"></div>
-
-          <p class="empty-state" id="emptyState">
-            まだ記録はありません。今日の小さな笑顔から、残してみましょう。
-          </p>
+          <p class="empty-state" id="emptyState">まだ記録はありません。今日の小さな笑顔から、残してみましょう。</p>
         </section>
       </section>
 
-      <!-- 笑顔の記録画面 -->
       <section class="view" id="cameraView" aria-labelledby="cameraTitle">
         <div class="page-heading compact-heading">
           <div>
             <h1 id="cameraTitle">笑顔を記録</h1>
             <p class="subheading">カメラの前で、ちょっと一息</p>
           </div>
-
-          <button class="text-button" id="backToCalendar" type="button">
-            カレンダーへ戻る
-          </button>
+          <button class="text-button" id="backToCalendar" type="button">カレンダーへ戻る</button>
         </div>
-
         <div class="camera-layout">
           <div class="camera-panel">
             <div class="camera-frame" id="cameraFrame">
               <video id="cameraVideo" autoplay playsinline muted hidden></video>
               <canvas id="captureCanvas" hidden></canvas>
-
               <div class="camera-placeholder" id="cameraPlaceholder">
                 <div class="camera-symbol" aria-hidden="true">○</div>
                 <p>ここにカメラ映像が表示される</p>
                 <small>カメラの使用を許可してください</small>
               </div>
-
-              <div class="camera-status" id="cameraStatus">
-                カメラ未起動
-              </div>
+              <div class="camera-status" id="cameraStatus">カメラ未起動</div>
             </div>
-
             <div class="camera-actions">
-              <button class="primary-button" id="startCameraButton" type="button">
-                カメラを起動
-              </button>
-
-              <button class="secondary-button" id="captureButton" type="button" disabled>
-                写真を撮る
-              </button>
+              <button class="primary-button" id="startCameraButton" type="button">カメラを起動</button>
+              <button class="secondary-button" id="captureButton" type="button" disabled>写真を撮る</button>
             </div>
           </div>
-
-          <!-- 記録フォーム -->
           <form class="note-panel" id="recordForm">
             <h2>今日の記録</h2>
-
             <label for="memoryDate">日付</label>
             <input id="memoryDate" name="date" type="date" required>
-
-            <label for="smileScore">笑顔スコア</label>
-
-            <div class="score-row">
-              <input
-                id="smileScore"
-                name="score"
-                type="number"
-                min="0"
-                max="100"
-                step="1"
-                value=""
-                placeholder="未計測"
-                readonly
-                aria-describedby="scoreHelp"
-              >
-              <span>%</span>
-            </div>
-
-            <small id="scoreHelp">
-              カメラで撮影すると、笑顔スコアが自動で計測されます。
-            </small>
-
+            <label for="smileScore">笑顔スコア</label> <!-- 計測機能と接続 -->
+            <div class="score-row"><input id="smileScore" name="score" type="number" min="0" max="100" value="—" disabled><span>%</span></div>
             <label for="memoryNote">一言メモ</label>
-            <textarea
-              id="memoryNote"
-              name="note"
-              rows="5"
-              maxlength="240"
-              placeholder="何がうれしかった？ どんな一日だった？"
-            ></textarea>
-
-            <button
-              class="primary-button full-width"
-              id="saveRecordButton"
-              type="submit"
-              disabled
-            >
-              写真とメモを保存
-            </button>
-
+            <textarea id="memoryNote" name="note" rows="5" maxlength="240" placeholder="何がうれしかった？ どんな一日だった？"></textarea>
+            <button class="primary-button full-width" id="saveRecordButton" type="submit" disabled>写真とメモを保存</button>
             <p class="form-message" id="formMessage" role="status"></p>
           </form>
         </div>
       </section>
 
-      <!-- 記録の詳細画面 -->
       <section class="view" id="detailView" aria-labelledby="detailTitle">
-        <button class="text-button back-link" id="detailBackButton" type="button">
-          ← カレンダーへ戻る
-        </button>
-
+        <button class="text-button back-link" id="detailBackButton" type="button">← カレンダーへ戻る</button>
         <div class="detail-layout">
-          <div class="detail-photo-wrap">
-            <img id="detailPhoto" alt="保存した思い出の写真">
-            <div class="photo-caption"></div>
-          </div>
-
+          <div class="detail-photo-wrap"><img id="detailPhoto" alt="保存した思い出の写真"><div class="photo-caption"></div></div>
           <div class="detail-copy">
             <h1 id="detailTitle">記録の詳細</h1>
             <p class="detail-date" id="detailDate"></p>
-
             <dl class="detail-stats">
-              <div>
-                <dt>笑顔スコア</dt>
-                <dd id="detailScore">未計測</dd>
-              </div>
-
-              <div>
-                <dt>撮影までの時間</dt>
-                <dd id="detailElapsed">—</dd>
-              </div>
+              <div><dt>笑顔スコア</dt><dd id="detailScore">未計測</dd></div>
+              <div><dt>撮影までの時間</dt><dd id="detailElapsed">—</dd></div>
             </dl>
-
             <h2>その日の一言</h2>
             <p class="detail-note" id="detailNote"></p>
-
-            <button class="secondary-button" id="deleteRecordButton" type="button">
-              この記録を削除
-            </button>
+            <button class="secondary-button" id="deleteRecordButton" type="button">この記録を削除</button>
           </div>
         </div>
       </section>
     </main>
 
-    <!-- 下部メニュー -->
     <nav class="bottom-nav" aria-label="メインメニュー">
-      <button class="nav-item is-current" data-view="calendarView" type="button">
-        <span aria-hidden="true"></span>
-        <small>カレンダー</small>
-      </button>
-
-      <button class="nav-item" data-view="cameraView" type="button">
-        <span aria-hidden="true"></span>
-        <small>カメラ</small>
-      </button>
+      <button class="nav-item is-current" data-view="calendarView" type="button"><span aria-hidden="true"></span><small>カレンダー</small></button>
+      <button class="nav-item" data-view="cameraView" type="button"><span aria-hidden="true"></span><small>カメラ</small></button>
     </nav>
   </div>
-
-  <!-- MediaPipeをimportするため、type="module"を指定 -->
   <script type="module" src="../JS/app.js"></script>
 </body>
 </html>

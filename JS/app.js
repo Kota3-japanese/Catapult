@@ -4,10 +4,6 @@ import {
 } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
 const $ = (selector) => document.querySelector(selector);
-import {
-  FaceLandmarker,
-  FilesetResolver
-} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 const views = [...document.querySelectorAll(".view")];
 const navItems = [...document.querySelectorAll(".nav-item")];
 const monthLabel = $("#monthLabel");
@@ -24,25 +20,6 @@ const startCameraButton = $("#startCameraButton");
 const captureButton = $("#captureButton");
 const saveRecordButton = $("#saveRecordButton");
 const recordForm = $("#recordForm");
-let faceLandmarker = null;
-async function setupFaceLandmarker() {
-  const vision = await FilesetResolver.forVisionTasks(
-    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
-  );
-
-  faceLandmarker = await FaceLandmarker.createFromOptions(
-    vision,
-    {
-      baseOptions: {
-        modelAssetPath:
-          "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
-      },
-      runningMode: "IMAGE",
-      numFaces: 1,
-      outputFaceBlendshapes: true
-    }
-  );
-}
 
 const now = new Date();
 let shownMonth = new Date(now.getFullYear(), now.getMonth(), 1);
