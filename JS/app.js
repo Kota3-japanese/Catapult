@@ -14,7 +14,6 @@ const startCameraButton = $("#startCameraButton");
 const captureButton = $("#captureButton");
 const saveRecordButton = $("#saveRecordButton");
 const recordForm = $("#recordForm");
-const downloadAlbumButton = $("#downloadAlbumButton");
 
 const now = new Date();
 let shownMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -66,6 +65,7 @@ function renderCalendar() {
   const month = shownMonth.getMonth();
   monthLabel.textContent = `${year}年${month + 1}月`;
   calendarGrid.innerHTML = "";
+  // Convert Sunday-first JS index to Monday-first calendar columns.
   const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   for (let i = 0; i < firstWeekday; i++) {
@@ -166,6 +166,7 @@ function capturePhoto() {
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   const context = canvas.getContext("2d");
+  // Mirror the captured selfie so it matches the preview.
   context.translate(canvas.width, 0);
   context.scale(-1, 1);
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -203,6 +204,7 @@ function saveRecord(event) {
     elapsed: Number.isFinite(elapsed) ? elapsed : null,
     createdAt: new Date().toISOString()
   };
+  // Keep one record per date in this simple prototype.
   records = records.filter(item => item.date !== date);
   records.push(record);
   persistRecords();
@@ -213,152 +215,6 @@ function saveRecord(event) {
   stopCamera();
   openDetail(record.id);
 }
-
-/* 現在表示している月の記録を、1枚のPNGアルバムにしてダウンロード */
-async function downloadMonthlyAlbum() {
-  const year = shownMonth.getFullYear();
-  const month = shownMonth.getMonth();
-  const monthlyRecords = records
-    .filter(record => {
-      const date = parseDate(record.date);
-      return date.getFullYear() === year && date.getMonth() === month;
-    })
-    .sort((a, b) => a.date.localeCompare(b.date));
-
-  if (monthlyRecords.length === 0) {
-    alert("この月には記録がありません。写真を記録してからお試しください。");
-    return;
-  }
-
-  downloadAlbumButton.disabled = true;
-  const originalLabel = downloadAlbumButton.textContent;
-  downloadAlbumButton.textContent = "アルバムを作成中…";
-
-  try {
-    const columns = 3;
-    const margin = 56;
-    const gap = 24;
-    const cardWidth = 336;
-    const cardHeight = 390;
-    const headerHeight = 190;
-    const rows = Math.ceil(monthlyRecords.length / columns);
-    const width = margin * 2 + columns * cardWidth + (columns - 1) * gap;
-    const height = headerHeight + margin + rows * cardHeight + Math.max(0, rows - 1) * gap + margin;
-
-    const albumCanvas = document.createElement("canvas");
-    albumCanvas.width = width;
-    albumCanvas.height = height;
-    const ctx = albumCanvas.getContext("2d");
-
-    // 背景と見出し
-    ctx.fillStyle = "#f5f0e5";
-    ctx.fillRect(0, 0, width, height);
-    ctx.fillStyle = "#352b20";
-    ctx.textAlign = "center";
-    ctx.font = "bold 42px 'Noto Sans JP', sans-serif";
-    ctx.fillText(`${year}年${month + 1}月の笑顔アルバム`, width / 2, 76);
-    ctx.fillStyle = "#887d6c";
-    ctx.font = "20px 'Noto Sans JP', sans-serif";
-    ctx.fillText(`今月の記録：${monthlyRecords.length}件`, width / 2, 120);
-    ctx.strokeStyle = "#ded4c2";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(margin, 150);
-    ctx.lineTo(width - margin, 150);
-    ctx.stroke();
-
-    for (let index = 0; index < monthlyRecords.length; index++) {
-      const record = monthlyRecords[index];
-      const col = index % columns;
-      const row = Math.floor(index / columns);
-      const x = margin + col * (cardWidth + gap);
-      const y = headerHeight + row * (cardHeight + gap);
-
-      // カード背景
-      ctx.fillStyle = "#fffdf8";
-      ctx.fillRect(x, y, cardWidth, cardHeight);
-      ctx.strokeStyle = "#ded4c2";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(x, y, cardWidth, cardHeight);
-
-      // 写真を読み込んでカードに配置
-      const photo = await loadAlbumImage(record.photo);
-      const photoX = x + 16;
-      const photoY = y + 16;
-      const photoW = cardWidth - 32;
-      const photoH = 250;
-      ctx.fillStyle = "#e9e2d4";
-      ctx.fillRect(photoX, photoY, photoW, photoH);
-      drawCoverImage(ctx, photo, photoX, photoY, photoW, photoH);
-
-      // 日付
-      ctx.textAlign = "left";
-      ctx.fillStyle = "#5f6444";
-      ctx.font = "bold 18px 'Noto Sans JP', sans-serif";
-      ctx.fillText(formatDate(record.date), x + 18, y + 298, cardWidth - 36);
-
-      // メモ。長い文章は最大2行に省略
-      ctx.fillStyle = "#352b20";
-      ctx.font = "17px 'Noto Sans JP', sans-serif";
-      drawWrappedText(ctx, record.note || "一言メモはありません", x + 18, y + 330, cardWidth - 36, 26, 2);
-    }
-
-    const blob = await new Promise((resolve, reject) => {
-      albumCanvas.toBlob(result => result ? resolve(result) : reject(new Error("画像を作成できませんでした")), "image/png");
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `ご機嫌メーター_${year}年${String(month + 1).padStart(2, "0")}月_アルバム.png`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1500);
-  } catch (error) {
-    console.error(error);
-    alert("アルバム画像の作成に失敗しました。写真データを確認して、もう一度お試しください。");
-  } finally {
-    downloadAlbumButton.disabled = false;
-    downloadAlbumButton.textContent = originalLabel;
-  }
-}
-
-function loadAlbumImage(src) {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error("写真を読み込めませんでした"));
-    image.src = src;
-  });
-}
-function drawCoverImage(ctx, image, x, y, width, height) {
-  const scale = Math.max(width / image.width, height / image.height);
-  const sourceWidth = width / scale;
-  const sourceHeight = height / scale;
-  const sourceX = (image.width - sourceWidth) / 2;
-  const sourceY = (image.height - sourceHeight) / 2;
-  ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height);
-}
-function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
-  let line = "";
-  const lines = [];
-  for (const character of String(text)) {
-    const testLine = line + character;
-    if (ctx.measureText(testLine).width > maxWidth && line) {
-      lines.push(line);
-      line = character;
-      if (lines.length === maxLines) break;
-    } else {
-      line = testLine;
-    }
-  }
-  if (lines.length < maxLines && line) lines.push(line);
-  if (lines.length === maxLines && lines[lines.length - 1] !== line && lines[lines.length - 1]) {
-    lines[lines.length - 1] = lines[lines.length - 1].replace(/[、。]$/, "") + "…";
-  }
-  lines.slice(0, maxLines).forEach((item, index) => ctx.fillText(item, x, y + index * lineHeight, maxWidth));
-}
-
 $("#prevMonth").addEventListener("click", () => {
   shownMonth = new Date(shownMonth.getFullYear(), shownMonth.getMonth() - 1, 1);
   renderCalendar();
@@ -380,7 +236,6 @@ navItems.forEach(item => item.addEventListener("click", () => {
 startCameraButton.addEventListener("click", startCamera);
 captureButton.addEventListener("click", capturePhoto);
 recordForm.addEventListener("submit", saveRecord);
-downloadAlbumButton.addEventListener("click", downloadMonthlyAlbum);
 $("#deleteRecordButton").addEventListener("click", () => {
   if (!activeRecordId) return;
   records = records.filter(item => item.id !== activeRecordId);
