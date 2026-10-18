@@ -10,7 +10,7 @@ const ctx = canvas.getContext("2d");
 
 const scoreElement = document.getElementById("score");
 const statusElement = document.getElementById("status");
-const messageElement = document.getElementById("message");
+const messageElement = document.getElementById("resultMessage");
 
 const startButton = document.getElementById("startButton");
 const captureButton = document.getElementById("captureButton");
@@ -155,21 +155,153 @@ async function capturePhoto() {
         resultElement.hidden = false;
 
         statusElement.textContent = "採点完了！";
-       if  (score === 100) {
-        messageElement.textContent = "こんな笑顔見たことない！友達もびっくり";
-       } else if (score >= 90) {
-        messageElement.textContent = "惜しい！";
-       } else if (score >= 80) {
-        messageElement.textContent = "恥を捨てて！まだいける！！";
-       } else if (score >= 70) {
-        messageElement.textContent = "一般的な笑顔ですね";
-       }else if (score >= 60) {
-        messageElement.textContent = "微妙な笑顔！";
-       }else if (score >= 50) {
-        messageElement.textContent = "表情筋のトレーニングをおすすめします";
-       }else if (score >= 0) {
-        messageElement.textContent = "ウシでも出来る笑顔！🐄";
-       }
+
+        switch (score) {
+            case 100:
+                messageElement.textContent ='神の領域';
+                break;
+            case 99:
+            case 98:
+            case 97:
+            case 96:
+            case 95:
+                messageElement.textContent = '世界レベル';
+                break;
+            case 94:
+            case 93:
+            case 92:
+            case 91:
+            case 90:
+                messageElement.textContent = 'その笑顔、世界救えます！';
+                break;
+            case 89:
+            case 88:
+            case 87:
+            case 86:
+            case 85:
+                messageElement.textContent = '恥を捨てて！まだいける！！';
+                break;  
+            case 84:
+            case 83:
+            case 82:
+            case 81:
+            case 80:
+                messageElement.textContent = '笑顔の才能あり';
+                break;
+            case 79:
+            case 78:
+            case 77:
+            case 76:
+            case 75:
+                messageElement.textContent = '笑顔の天才か！';
+                break;
+            case 74:
+            case 73:
+            case 72:
+            case 71:
+            case 70:
+                messageElement.textContent = 'いい笑顔！';
+                break;
+            case 69:
+            case 68:
+            case 67:
+            case 66:
+            case 65:
+            
+                messageElement.textContent = '一般的な笑顔ですな';
+                break;
+            case 64:
+            case 63:
+            case 62:
+            case 61:
+            case 60:
+                messageElement.textContent = '平均点はこえた！知らんけど';
+                break;
+            case 59:
+            case 58:
+            case 57:
+            case 56:
+            case 55:
+                messageElement.textContent = '悪くないけど何かが足りない！';
+                break;
+            case 54:
+            case 53:
+            case 52:
+            case 51:
+            case 50:
+                messageElement.textContent ='もうちょっと頑張れるはず！';
+                break;
+            case 49:
+            case 48:
+            case 47:
+            case 46:
+            case 45:
+                messageElement.textContent = '心から笑ってる？';
+                break;
+            case 44:
+            case 43:
+            case 42:
+            case 41:
+            case 40:
+                messageElement.textContent = '笑顔あきらめた方がいいかも';
+                break;
+            case 39:
+            case 38:
+            case 37:
+            case 36:
+            case 35:
+                messageElement.textContent = '笑顔の練習してこようかwww';
+                break;
+            case 34:
+            case 33:
+            case 32:
+            case 31:
+            case 30:
+                messageElement.textContent = '寝起きの顔かな？';
+                break;
+            case 29:
+            case 28:
+            case 27:
+            case 26:
+            case 25:
+                messageElement.textContent = '逆にこの点数出せる方がすごい';
+                break;
+            case 24:
+            case 23:
+            case 22:
+            case 21:
+            case 20:
+                messageElement.textContent = '証明写真でも、もう少し笑うよ';
+                break;
+            case 19:
+            case 18:
+            case 17:
+            case 16:
+            case 15:
+                messageElement.textContent = '笑顔って知ってますか？';
+                break;
+            case 14:
+            case 13:
+            case 12:
+            case 11:
+            case 10:
+                messageElement.textContent = '笑顔の気配すら感じない';
+                break;
+            case 9:
+            case 8:
+            case 7:
+            case 6:
+            case 5:
+                messageElement.textContent = 'カメラが可哀想';
+                break;
+            case 4:
+            case 3:
+            case 2:
+            case 1:
+            case 0:
+                messageElement.textContent = 'ウシでも出来る笑顔🐄';
+                break;
+        }
 
     } catch (error) {
         console.error(error);
