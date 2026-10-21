@@ -3,6 +3,12 @@ import {
   FilesetResolver
 } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
+import {
+  getDiaries,
+  createImageUrls,
+  postDiary
+} from "./db.js";
+
 const $ = (selector) => document.querySelector(selector);
 const views = [...document.querySelectorAll(".view")];
 const navItems = [...document.querySelectorAll(".nav-item")];
@@ -31,9 +37,47 @@ let startedAt = null;
 let faceLandmarker = null;
 let isCapturing = false;
 
-// 記録は現在のブラウザ内に保存する
-const STORAGE_KEY = "smile-memory-demo-records";
-let records = loadRecords();
+// ブラウザ保存からsupabaseへ～
+let records = [];
+
+// supabase日記データを画面に
+function convertDiaryRecords(diaries, imageUrls) {
+  return diaries.map(diary => ({
+    // 日付を記録用の識別子として使う
+    id: diary.diary_date,
+    date: diary.diary_date,
+    photo: imageUrls.get(diary.image_path) || "",
+    note: diary.comment || "",
+    score: diary.smile_score,
+    elapsed: null,
+    createdAt: diary.created_at || ""
+  }));
+}
+
+// supabaseから日記と画像URLを取得する
+async function loadSupabaseRecords() {
+  try {
+    const diaries = await getDiaries(
+      "1900-01-01",
+      "2100-12-31"
+    );
+
+    const imagePaths = diaries
+      .map(diary => diary.image_path)
+      .filter(Boolean);
+
+    const imageUrls = await createImageUrls(imagePaths);
+
+    records = convertDiaryRecords(diaries, imageUrls);
+
+    renderCalendar();
+  } catch (error) {
+    console.error("日記の読み込みに失敗しました:", error);
+
+    $("#formMessage").textContent =
+      "日記を読み込めませんでした。なんかトラブってるから頑張って"
+  }
+}
 
 // 日付を YYYY-MM-DD の形式にする
 function dateKey(date) {
@@ -437,7 +481,7 @@ function resetCapture() {
 }
 
 // 記録を保存する
-function saveRecord(event) {
+async function saveRecord(event) {
   event.preventDefault();
 
   if (!capturedPhoto) {
@@ -452,45 +496,61 @@ function saveRecord(event) {
     return;
   }
 
+  // 現在のデータベースだと同じ日付に複数保存できない
+  if (recordForDate(date)) {
+    $("#formMessage").textContent = "この日付にはすでに記録ある。別の日付を選んで";
+    return;
+  }
+
   const scoreValue = $("#smileScore").value;
-  const score = scoreValue === "" || scoreValue === "—"
-    ? null
-    : Number(scoreValue);
 
-  const elapsed = startedAt
-    ? (performance.now() - startedAt) / 1000
-    : null;
+  const score =
+   scoreValue === "" ||
+   scoreValue === "-" ||
+   scoreValue === "_"
+   ? null
+   : Number(scoreValue);
+  saveRecordButton.disabled = true;
+  $("#formMessage").textContent = "保存しています...";
 
-  const record = {
-    id: crypto.randomUUID
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random()}`,
-    date,
-    photo: capturedPhoto,
-    note: $("#memoryNote").value.trim(),
-    score: Number.isFinite(score) ? score : null,
-    elapsed: Number.isFinite(elapsed) ? elapsed : null,
-    createdAt: new Date().toISOString()
-  };
+  try {
+    //撮影した画像データをblobに変換～
+    const response = await fetch(capturedPhoto);
+    const imageBlob = await response.blob();
 
-  // この試作版では、同じ日付の記録は1件にする
-  records = records.filter(item => item.date !== date);
-  records.push(record);
+    // supabaseに画像と日記を保存する
+    await postDiary({
+      date,
+      comment: $("#memoryNote").value.trim(),
+      smileScore: Number.isFinite(score) ?score : null,
+      imageBlob,
+      contentType: "image/jpeg"
+    });
 
-  persistRecords();
+    // 保存できたら、データベースから記録を読みなおｓ
+    await loadSupabaseRecords();
 
-  selectedDate = date;
+    selectedDate = date;
 
-  shownMonth = new Date(
-    parseDate(date).getFullYear(),
-    parseDate(date).getMonth(),
-    1
-  );
+    shownMonth = new Date(
+      parseDate(date).getFullYear(),
+      parseDate(date).getMonth(),
+      1
+    );
 
-  resetCapture();
-  renderCalendar();
-  stopCamera();
-  openDetail(record.id);
+    resetCapture();
+    stopCamera();
+
+    openDetail(date);
+
+    $("#formMessage").textContent = "";
+  } catch (error) {
+    console.error("日記の保存に失敗しました:", error);
+
+    $("#formMessage").textContent = "保存に失敗しました。ログイン状態やsupabaseの設定を確認してください。";
+  } finally {
+    saveRecordButton.disabled = false;
+  }
 }
 
 // 前の月へ移動する
@@ -566,9 +626,9 @@ $("#deleteRecordButton").addEventListener("click", () => {
 // ページを離れるときにカメラを停止する
 window.addEventListener("beforeunload", stopCamera);
 
-// 初期表示
+// ページ開いたときにsupabseから日記取得すんで～
 $("#memoryDate").value = dateKey(now);
-renderCalendar();
+loadSupabaseRecords();
 
 // 月ごとの写真をまとめたアルバムを作成する
 const downloadAlbumButton = $("#downloadAlbumButton");
