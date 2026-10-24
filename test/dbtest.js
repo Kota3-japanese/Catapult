@@ -1,4 +1,5 @@
 // dbtest.js : db.js の動作確認用テスト
+// 多分今は動かない！
 //
 // 想定しているフォルダ構成：
 //   /JS/auth.js, /JS/db.js, /JS/config.js
