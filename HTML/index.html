@@ -1,0 +1,340 @@
+
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f0e5">
+  <title>Be Smile</title>
+  <link rel="stylesheet" href="../CSS/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Be Smile ホーム">
+        <span>Be Smile</span>
+      </a>
+    </header>
+
+    <main>
+      <!-- カレンダー画面 -->
+      <section
+        class="view is-active"
+        id="calendarView"
+        aria-labelledby="calendarTitle"
+      >
+        <div class="page-heading">
+          <div>
+            <h1 id="calendarTitle">Memory</h1>
+          </div>
+
+          <button
+            class="primary-button"
+            id="openCameraButton"
+            type="button"
+          >
+            <span aria-hidden="true">＋</span>
+            笑顔を記録
+          </button>
+        </div>
+
+        <section class="calendar-card" aria-label="月間カレンダー">
+          <div class="calendar-toolbar">
+            <button
+              class="icon-button"
+              id="prevMonth"
+              type="button"
+              aria-label="前の月"
+            >
+              ‹
+            </button>
+
+            <h2 id="monthLabel">2026年10月</h2>
+
+            <button
+              class="icon-button"
+              id="nextMonth"
+              type="button"
+              aria-label="次の月"
+            >
+              ›
+            </button>
+          </div>
+
+          <div class="weekdays" aria-hidden="true">
+            <span>月</span>
+            <span>火</span>
+            <span>水</span>
+            <span>木</span>
+            <span>金</span>
+            <span>土</span>
+            <span>日</span>
+          </div>
+
+          <div
+            class="calendar-grid"
+            id="calendarGrid"
+            aria-label="日付"
+          ></div>
+
+          <div class="calendar-legend">
+            <span class="legend-dot"></span>
+            <span>写真がある日にはサムネイルが表示されます</span>
+          </div>
+        </section>
+
+        <section class="recent-section" aria-labelledby="recentTitle">
+          <div class="section-heading">
+            <h2 id="recentTitle">最近の記録</h2>
+
+            <span class="muted" id="recordCount">0件</span>
+
+            <div class="album-actions">
+
+              <button
+                class="primary-button"
+                id="shareAlbumButton"
+                type="button"
+              >
+                共有URLを作る
+              </button>
+            </div>
+          </div>
+
+          <div
+            id="shareAlbumResult"
+            class="share-album-result"
+            hidden
+          >
+            <p>共有アルバムを作成しました。URLを相手に送ってね。</p>
+
+            <div class="share-url-row">
+              <input
+                id="shareAlbumUrl"
+                type="url"
+                readonly
+                aria-label="共有アルバムのURL"
+              >
+
+              <button
+                class="secondary-button"
+                id="copyShareAlbumUrlButton"
+                type="button"
+              >
+                URLをコピー
+              </button>
+            </div>
+
+            <p
+              id="shareAlbumMessage"
+              role="status"
+              aria-live="polite"
+            ></p>
+          </div>
+
+          <div class="recent-list" id="recentList"></div>
+
+          <p class="empty-state" id="emptyState">
+            まだ記録はありません。今日の小さな笑顔から、残してみましょう。
+          </p>
+        </section>
+      </section>
+
+      <!-- カメラ・記録画面 -->
+      <section
+        class="view"
+        id="cameraView"
+        aria-labelledby="cameraTitle"
+      >
+        <div class="page-heading compact-heading">
+          <div>
+            <h1 id="cameraTitle">笑顔を記録</h1>
+            <p class="subheading">１＋１は？</p>
+          </div>
+
+          <button
+            class="text-button"
+            id="backToCalendar"
+            type="button"
+          >
+            カレンダーへ戻る
+          </button>
+        </div>
+
+        <div class="camera-layout">
+          <div class="camera-panel">
+            <div class="camera-frame" id="cameraFrame">
+              <video
+                id="cameraVideo"
+                autoplay
+                playsinline
+                muted
+                hidden
+              ></video>
+
+              <canvas id="captureCanvas" hidden></canvas>
+
+              <div class="camera-placeholder" id="cameraPlaceholder">
+                <div class="camera-symbol" aria-hidden="true">○</div>
+                <p>ここにカメラ映像が表示されます</p>
+                <small>カメラの使用を許可してください</small>
+              </div>
+
+              <div
+                class="camera-status"
+                id="cameraStatus"
+                role="status"
+                aria-live="polite"
+              >
+                カメラ未起動
+              </div>
+            </div>
+
+            <div class="camera-actions">
+              <button
+                class="primary-button"
+                id="startCameraButton"
+                type="button"
+              >
+                カメラを起動
+              </button>
+
+              <button
+                class="secondary-button"
+                id="captureButton"
+                type="button"
+                disabled
+              >
+                写真を撮る
+              </button>
+            </div>
+          </div>
+
+          <form class="note-panel" id="recordForm">
+            <h2>今日の記録</h2>
+
+            <label for="memoryDate">日付</label>
+            <input
+              id="memoryDate"
+              name="date"
+              type="date"
+              required
+            >
+
+            <label for="smileScore">笑顔スコア</label>
+            <div class="score-row">
+              <input
+                id="smileScore"
+                name="score"
+                type="number"
+                min="0"
+                max="100"
+                step="1"
+                placeholder="未計測"
+                disabled
+              >
+              <span>点</span>
+            </div>
+
+            <label for="memoryNote">一言メモ</label>
+            <textarea
+              id="memoryNote"
+              name="note"
+              rows="5"
+              maxlength="240"
+              placeholder="何がうれしかった？ どんな一日だった？"
+            ></textarea>
+
+            <button
+              class="primary-button full-width"
+              id="saveRecordButton"
+              type="submit"
+              disabled
+            >
+              写真とメモを保存
+            </button>
+
+            <p
+              class="form-message"
+              id="formMessage"
+              role="status"
+              aria-live="polite"
+            ></p>
+          </form>
+        </div>
+      </section>
+
+      <!-- 記録の詳細画面 -->
+      <section
+        class="view"
+        id="detailView"
+        aria-labelledby="detailTitle"
+      >
+        <button
+          class="text-button back-link"
+          id="detailBackButton"
+          type="button"
+        >
+          ← カレンダーへ戻る
+        </button>
+
+        <div class="detail-layout">
+          <div class="detail-photo-wrap">
+            <img id="detailPhoto" alt="保存した思い出の写真">
+            <div class="photo-caption"></div>
+          </div>
+
+          <div class="detail-copy">
+            <h1 id="detailTitle">記録の詳細</h1>
+
+            <p class="detail-date" id="detailDate"></p>
+
+            <dl class="detail-stats">
+              <div>
+                <dt>笑顔スコア</dt>
+                <dd id="detailScore">未計測</dd>
+              </div>
+            </dl>
+
+            <h2>その日の一言</h2>
+            <p class="detail-note" id="detailNote"></p>
+
+            <button
+              class="secondary-button"
+              id="deleteRecordButton"
+              type="button"
+            >
+              この記録を削除
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 下部ナビゲーション -->
+    <nav class="bottom-nav" aria-label="メインメニュー">
+      <button
+        class="nav-item is-current"
+        data-view="calendarView"
+        type="button"
+        aria-label="カレンダー画面"
+      >
+        <span aria-hidden="true"></span>
+        <small>カレンダー</small>
+      </button>
+
+      <button
+        class="nav-item"
+        data-view="cameraView"
+        type="button"
+        aria-label="カメラ画面"
+      >
+        <span aria-hidden="true"></span>
+        <small>カメラ</small>
+      </button>
+    </nav>
+  </div>
+
+  <script type="module" src="../JS/app.js"></script>
+</body>
+</html>
