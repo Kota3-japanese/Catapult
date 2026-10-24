@@ -89,13 +89,54 @@
 
             <span class="muted" id="recordCount">0件</span>
 
-            <button
-              class="secondary-button"
-              id="downloadAlbumButton"
-              type="button"
-            >
-              アルバムを作る
-            </button>
+            <div class="album-actions">
+              <button
+                class="secondary-button"
+                id="downloadAlbumButton"
+                type="button"
+              >
+                PNGアルバムを保存
+              </button>
+
+              <button
+                class="primary-button"
+                id="shareAlbumButton"
+                type="button"
+              >
+                共有URLを作る
+              </button>
+            </div>
+          </div>
+
+          <div
+            id="shareAlbumResult"
+            class="share-album-result"
+            hidden
+          >
+            <p>共有アルバムを作成しました。URLを相手に送ってね。</p>
+
+            <div class="share-url-row">
+              <input
+                id="shareAlbumUrl"
+                type="url"
+                readonly
+                aria-label="共有アルバムのURL"
+              >
+
+              <button
+                class="secondary-button"
+                id="copyShareAlbumUrlButton"
+                type="button"
+              >
+                URLをコピー
+              </button>
+            </div>
+
+            <p
+              id="shareAlbumMessage"
+              role="status"
+              aria-live="polite"
+            ></p>
           </div>
 
           <div class="recent-list" id="recentList"></div>

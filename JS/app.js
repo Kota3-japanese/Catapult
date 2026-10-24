@@ -8,7 +8,8 @@ import {
   getDiaries,
   createImageUrls,
   postDiary,
-  deleteDiary
+  deleteDiary,
+  createSharedAlbum
 } from "./db.js";
 
 // HTML要素を取得する
@@ -32,6 +33,11 @@ const saveRecordButton = $("#saveRecordButton");
 const recordForm = $("#recordForm");
 const deleteRecordButton = $("#deleteRecordButton");
 const downloadAlbumButton = $("#downloadAlbumButton");
+const shareAlbumButton = $("#shareAlbumButton");
+const shareAlbumResult = $("#shareAlbumResult");
+const shareAlbumUrl = $("#shareAlbumUrl");
+const copyShareAlbumUrlButton = $("#copyShareAlbumUrlButton");
+const shareAlbumMessage = $("#shareAlbumMessage");
 
 // アプリの状態
 const now = new Date();
@@ -95,6 +101,7 @@ function convertDiaryRecords(diaries, imageUrls) {
     id: diary.diary_date,
     date: diary.diary_date,
     photo: imageUrls.get(diary.image_path) || "",
+    image_path: diary.image_path,
     note: diary.comment || "",
     score: diary.smile_score,
     createdAt: diary.created_at || ""
@@ -891,5 +898,84 @@ downloadAlbumButton.addEventListener("click", async () => {
   } finally {
     downloadAlbumButton.disabled = false;
     downloadAlbumButton.textContent = "アルバムを作る";
+  }
+});
+
+ // 共有URLを作成する
+shareAlbumButton.addEventListener("click", async () => {
+  const year = shownMonth.getFullYear();
+  const month = shownMonth.getMonth();
+
+  // 表示中の月の記録だけを取得する
+  const monthlyRecords = records
+    .filter((record) => {
+      const date = parseDate(record.date);
+
+      return (
+        date.getFullYear() === year &&
+        date.getMonth() === month
+      );
+    })
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  if (monthlyRecords.length === 0) {
+    alert("この月には写真がありません。");
+    return;
+  }
+
+  if (
+    monthlyRecords.some(
+      (record) => !record.image_path
+    )
+  ) {
+    alert("写真の保存先が確認できない記録があります。");
+    return;
+  }
+
+  shareAlbumButton.disabled = true;
+  shareAlbumButton.textContent = "共有URLを作成中...";
+
+  shareAlbumMessage.textContent = "";
+  shareAlbumResult.hidden = true;
+
+  try {
+    const album = await createSharedAlbum({
+      title: `${year}年${month + 1}月の笑顔アルバム`,
+      diaries: monthlyRecords
+    });
+
+    shareAlbumUrl.value = album.shareUrl;
+    shareAlbumResult.hidden = false;
+    shareAlbumMessage.textContent =
+      "共有URLを作成しました。このURLを知っている人がアルバムを閲覧できます。";
+  } catch (error) {
+    console.error("共有アルバムの作成に失敗しました:", error);
+
+    alert(
+      "共有URLを作成できませんでした。ログイン状態とSupabaseの設定を確認してください。"
+    );
+  } finally {
+    shareAlbumButton.disabled = false;
+    shareAlbumButton.textContent = "共有URLを作る";
+  }
+});
+
+// 共有URLをコピーする
+copyShareAlbumUrlButton.addEventListener("click", async () => {
+  if (!shareAlbumUrl.value) {
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(shareAlbumUrl.value);
+    shareAlbumMessage.textContent = "共有URLをコピーしました。";
+  } catch (error) {
+    console.error("URLのコピーに失敗しました:", error);
+
+    shareAlbumUrl.focus();
+    shareAlbumUrl.select();
+
+    shareAlbumMessage.textContent =
+      "URLを選択しました。Ctrl + Cでコピーしてください。";
   }
 });

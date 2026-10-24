@@ -1,7 +1,4 @@
 
- // DBとのデータやり取りがまとまったファイル
- // auth.js から Supabase クライアントとログインユーザーを取得する
-
 import { supabase, user } from "./auth.js";
 
 // ---- 設定値 ---------------------------------------------------------
@@ -10,22 +7,17 @@ const TABLE = "diaries";
 const BUCKET = "smile-images";
 const SIGNED_URL_EXPIRES = 60 * 60;
 
-// 画面で使用する列
 const DIARY_COLUMNS =
   "diary_date, comment, image_path, smile_score";
 
 // ---- 内部用の関数 ---------------------------------------------------
 
-// ログインしていなければエラーにする
 function requireLogin() {
   if (!user) {
-    throw new Error(
-      "ログインしていないため、データを扱えません。"
-    );
+    throw new Error("ログインしていないため、データを扱えません。");
   }
 }
 
-// 日付から画像のパスを作る
 function toImagePath(date) {
   return `${user.id}/${date}.jpg`;
 }
@@ -33,7 +25,7 @@ function toImagePath(date) {
 // ---- 日記の取得 -----------------------------------------------------
 
 /**
- * 指定期間の日記を取得する（日付の昇順）
+ * 指定期間の日記を日付の昇順で取得する
  */
 export async function getDiaries(startDate, endDate) {
   requireLogin();
@@ -91,10 +83,7 @@ export async function createImageUrls(paths) {
     .createSignedUrls(paths, SIGNED_URL_EXPIRES);
 
   if (error) {
-    console.error(
-      "画像URLの発行に失敗しました:",
-      error.message
-    );
+    console.error("画像URLの発行に失敗しました:", error.message);
     throw error;
   }
 
@@ -137,16 +126,14 @@ export async function postDiary({
     throw new Error("アップロードする画像がありません。");
   }
 
-  // 1. 同じ日付の日記がないか確認する
+  // 同じ日付の日記がないか確認する
   const existing = await getDiaryByDate(date);
 
   if (existing) {
-    throw new Error(
-      `${date} の日記はすでに投稿されています。`
-    );
+    throw new Error(`${date} の日記はすでに投稿されています。`);
   }
 
-  // 2. 画像をアップロードする
+  // 画像をアップロードする
   const imagePath = toImagePath(date);
 
   const { error: uploadError } = await supabase.storage
@@ -164,7 +151,7 @@ export async function postDiary({
     throw uploadError;
   }
 
-  // 3. 日記をデータベースに保存する
+  // 日記をデータベースに保存する
   const { data, error: insertError } = await supabase
     .from(TABLE)
     .insert({
@@ -182,7 +169,7 @@ export async function postDiary({
       insertError.message
     );
 
-    // 日記の保存に失敗したら、アップロードした画像を削除する
+    // 保存に失敗した場合は、アップロードした画像を削除する
     const { error: removeError } = await supabase.storage
       .from(BUCKET)
       .remove([imagePath]);
@@ -200,19 +187,10 @@ export async function postDiary({
   return data;
 }
 
-// ---- 日記と画像の削除 -----------------------------------------------
+// ---- 日記の削除 -----------------------------------------------------
 
 /**
- * 指定した日の日記と関連する画像を削除する
- *
- * 戻り値:
- * {
- *   success: true,
- *   imageDeleted: true または false
- * }
- *
- * 日記が見つからない場合や日記の削除に失敗した場合は
- * エラーを投げる。
+ * 指定した日の日記と保存画像を削除する
  */
 export async function deleteDiary(date) {
   requireLogin();
@@ -221,75 +199,108 @@ export async function deleteDiary(date) {
     throw new Error("削除する日付を指定してください。");
   }
 
-  // 1. 削除対象の日記を取得する
-  const { data: diary, error: findError } = await supabase
-    .from(TABLE)
-    .select("diary_date, image_path")
-    .eq("diary_date", date)
-    .maybeSingle();
-
-  if (findError) {
-    console.error(
-      "削除対象の日記の取得に失敗しました:",
-      findError.message
-    );
-    throw findError;
-  }
+  // 日記を取得する
+  const diary = await getDiaryByDate(date);
 
   if (!diary) {
-    throw new Error("削除する日記が見つかりません。");
+    throw new Error(`${date} の日記が見つかりません。`);
   }
 
-  // 2. データベースから日記を削除する
-  const { data: deletedDiaries, error: deleteError } =
-    await supabase
-      .from(TABLE)
-      .delete()
-      .eq("diary_date", date)
-      .select("diary_date");
+  // 日記をデータベースから削除する
+  const { error: deleteError } = await supabase
+    .from(TABLE)
+    .delete()
+    .eq("diary_date", date);
 
   if (deleteError) {
-    console.error(
-      "日記の削除に失敗しました:",
-      deleteError.message
-    );
+    console.error("日記の削除に失敗しました:", deleteError.message);
     throw deleteError;
   }
 
-  // RLSなどにより実際には削除されなかった場合
-  if (!deletedDiaries || deletedDiaries.length === 0) {
-    throw new Error(
-      "日記を削除できませんでした。データベースの権限設定を確認してください。"
-    );
+  // 保存画像を削除する
+  if (diary.image_path) {
+    const { error: imageError } = await supabase.storage
+      .from(BUCKET)
+      .remove([diary.image_path]);
+
+    if (imageError) {
+      console.error("画像の削除に失敗しました:", imageError.message);
+      throw imageError;
+    }
   }
 
-  // 3. 画像パスがなければ、日記の削除だけで完了
-  if (!diary.image_path) {
-    return {
-      success: true,
-      imageDeleted: true
-    };
+  return true;
+}
+
+// ---- 共有アルバムの作成 --------------------------------------------
+
+/**
+ * 指定した日記をまとめて共有アルバムを作成する
+ */
+export async function createSharedAlbum({ title, diaries }) {
+  requireLogin();
+
+  if (!Array.isArray(diaries) || diaries.length === 0) {
+    throw new Error("アルバムに追加する日記がありません。");
   }
 
-  // 4. データベースに保存されていたパスで画像を削除する
-  const { error: imageError } = await supabase.storage
-    .from(BUCKET)
-    .remove([diary.image_path]);
+  // 共有URL用のランダムなトークンを作成する
+  const shareToken = crypto.randomUUID();
 
-  if (imageError) {
-    console.error(
-      "日記は削除しましたが、画像の削除に失敗しました:",
-      imageError.message
-    );
+  // アルバム情報を保存する
+  const { data: album, error: albumError } = await supabase
+    .from("shared_albums")
+    .insert({
+      owner_id: user.id,
+      title: title || "Be Smile Album",
+      share_token: shareToken
+    })
+    .select("id, title, share_token")
+    .single();
 
-    return {
-      success: true,
-      imageDeleted: false
-    };
+  if (albumError) {
+    console.error("アルバムの作成に失敗しました:", albumError);
+    throw albumError;
+  }
+
+  // 日記をアルバムの収録項目に変換する
+  const items = diaries.map((diary) => ({
+    album_id: album.id,
+    diary_date: diary.date,
+    comment: diary.note || "",
+    smile_score: diary.score ?? null,
+    image_path: diary.image_path
+  }));
+
+  // 収録項目を保存する
+  const { error: itemsError } = await supabase
+    .from("shared_album_items")
+    .insert(items);
+
+  if (itemsError) {
+    console.error("アルバムの記録保存に失敗しました:", itemsError);
+
+    // 項目の保存に失敗した場合は、アルバムを削除する
+    const { error: cleanupError } = await supabase
+      .from("shared_albums")
+      .delete()
+      .eq("id", album.id);
+
+    if (cleanupError) {
+      console.error(
+        "アルバムの後片付けに失敗しました:",
+        cleanupError
+      );
+    }
+
+    throw itemsError;
   }
 
   return {
-    success: true,
-    imageDeleted: true
+    ...album,
+    shareUrl: new URL(
+      `album.html?token=${encodeURIComponent(shareToken)}`,
+      window.location.href
+    ).href
   };
 }
