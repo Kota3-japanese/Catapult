@@ -26,15 +26,15 @@ BeSmile は、日々の笑顔を記録し、あとから振り返るための We
 ## ディレクトリ構成
 
 Catapult/
-├── HTML/                  # HTMLファイル
-├── CSS/                   # CSSファイル
-├── JS/                    # JavaScriptファイル
-├── supabase/
-│   ├── config.toml        # Supabaseの設定
-│   └── functions/
-│       └── shared-album/  # 共有アルバム用Edge Function
-├── package.json
-└── README.md
+├── HTML/                  # HTMLファイル  
+├── CSS/                   # CSSファイル  
+├── JS/                    # JavaScriptファイル  
+├── supabase/  
+│   ├── config.toml        # Supabaseの設定  
+│   └── functions/  
+│       └── shared-album/  # 共有アルバム用Edge Function  
+├── package.json  
+└── README.md  
 
 ## 起動方法
 
